@@ -23,7 +23,7 @@ O repositório também inclui uma versão pronta, em `dist/`. Ela não exige Nod
 1. Dê dois cliques em `ABRIR-ROTA+.cmd`; ou
 2. Abra `dist/index.html` com Chrome, Edge ou outro navegador.
 
-Mantenha a pasta `dist/assets` junto de `dist/index.html`, pois ela contém os arquivos da aplicação. Os dados demonstrativos continuam sendo salvos localmente no navegador.
+O arquivo `dist/index.html` é autocontido: não exige Node, Python, servidor local, extensão do VS Code ou permissão de administrador. Os dados demonstrativos continuam sendo salvos localmente no navegador.
 
 ```bash
 npm run build         # TypeScript e bundle de produção

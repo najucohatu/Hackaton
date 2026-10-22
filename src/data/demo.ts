@@ -1,9 +1,9 @@
 import type { Prospect, Store, Stage } from "../models";
-import { reward } from "../services/business";
+import { reward, uid } from "../services/business";
 export function blankProspect(): Prospect {
   const timestamp = new Date().toISOString();
   return {
-    id: crypto.randomUUID(),
+    id: uid(),
     businessName: "",
     businessType: "Mercado",
     contactName: "",

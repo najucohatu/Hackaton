@@ -8,6 +8,14 @@ import {
   normalized,
 } from "./business";
 export const STORAGE_KEY = "rota-plus:v1";
+
+function availableStorage(): Pick<Storage, "getItem" | "setItem"> | null {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return null;
+  }
+}
 function unique(items: { id: string }[]) {
   return new Set(items.map((i) => i.id)).size === items.length;
 }
@@ -118,11 +126,18 @@ export function validateBackup(input: unknown): Store {
   return s;
 }
 export function loadStore(
-  storage: Pick<Storage, "getItem" | "setItem"> = localStorage,
+  storage?: Pick<Storage, "getItem" | "setItem">,
 ): { store: Store; warning: string } {
+  const activeStorage = storage ?? availableStorage();
+  if (!activeStorage)
+    return {
+      store: demoStore(),
+      warning:
+        "O navegador bloqueou o armazenamento local neste modo. A demonstração funciona, mas alterações serão perdidas ao fechar a página.",
+    };
   let raw: string | null = null;
   try {
-    raw = storage.getItem(STORAGE_KEY);
+    raw = activeStorage.getItem(STORAGE_KEY);
   } catch {
     return {
       store: demoStore(),
@@ -135,7 +150,7 @@ export function loadStore(
     return { store: validateBackup(JSON.parse(raw)), warning: "" };
   } catch {
     try {
-      storage.setItem(`${STORAGE_KEY}:recovery:${Date.now()}`, raw);
+      activeStorage.setItem(`${STORAGE_KEY}:recovery:${Date.now()}`, raw);
     } catch {
       /* preserve original if storage is full */
     }
@@ -148,10 +163,15 @@ export function loadStore(
 }
 export function persist(
   s: Store,
-  storage: Pick<Storage, "setItem"> = localStorage,
+  storage?: Pick<Storage, "setItem">,
 ) {
+  const activeStorage = storage ?? availableStorage();
+  if (!activeStorage)
+    throw new Error(
+      "O navegador bloqueou o armazenamento local neste modo. A demonstração funciona, mas alterações serão perdidas ao fechar a página.",
+    );
   try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(s));
+    activeStorage.setItem(STORAGE_KEY, JSON.stringify(s));
   } catch {
     throw new Error(
       "Não foi possível salvar. O armazenamento pode estar cheio ou bloqueado. Exporte seu backup.",

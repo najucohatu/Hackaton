@@ -8,7 +8,12 @@ import type {
   Priority,
   RewardAction,
 } from "../models";
-export const uid = () => crypto.randomUUID();
+// `crypto.randomUUID()` is unavailable when some browsers open an HTML file
+// directly. The fallback keeps the offline demonstrator operational; it is
+// not intended as a security identifier for a multi-user backend.
+export const uid = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 export const now = () => new Date().toISOString();
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
