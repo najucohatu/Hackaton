@@ -40,7 +40,10 @@ ${fu[T]}`),m("Sugestões copiadas para a área de transferência.")}catch{m("Nã
     <script>
       // When GitHub Pages publishes the repository root, send visitors to the
       // production build. This does not affect the local Vite development URL.
-      if (location.hostname.endsWith(".github.io")) {
+      if (
+        location.hostname.endsWith(".github.io") &&
+        !location.pathname.includes("/dist/")
+      ) {
         const repositoryPath = location.pathname.endsWith("/")
           ? location.pathname
           : `${location.pathname}/`;
