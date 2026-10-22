@@ -16,6 +16,8 @@ npm run dev
 
 Abra o endereço indicado pelo Vite no navegador. Para instalação reproduzível, use `npm ci` com o lockfile. Não são necessárias chaves, serviços de backend, banco de dados ou autenticação. Fontes, ícones e recursos visuais são locais.
 
+Quando o GitHub Pages estiver configurado para publicar a raiz da branch `main`, a página inicial redireciona automaticamente para a compilação pronta em `dist/`.
+
 ### Computador sem permissão para Node.js
 
 O repositório também inclui uma versão pronta, em `dist/`. Ela não exige Node, npm, terminal ou permissão de administrador:
