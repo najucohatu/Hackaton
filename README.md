@@ -16,6 +16,15 @@ npm run dev
 
 Abra o endereço indicado pelo Vite no navegador. Para instalação reproduzível, use `npm ci` com o lockfile. Não são necessárias chaves, serviços de backend, banco de dados ou autenticação. Fontes, ícones e recursos visuais são locais.
 
+### Computador sem permissão para Node.js
+
+O repositório também inclui uma versão pronta, em `dist/`. Ela não exige Node, npm, terminal ou permissão de administrador:
+
+1. Dê dois cliques em `ABRIR-ROTA+.cmd`; ou
+2. Abra `dist/index.html` com Chrome, Edge ou outro navegador.
+
+Mantenha a pasta `dist/assets` junto de `dist/index.html`, pois ela contém os arquivos da aplicação. Os dados demonstrativos continuam sendo salvos localmente no navegador.
+
 ```bash
 npm run build         # TypeScript e bundle de produção
 npm run preview       # servir o build

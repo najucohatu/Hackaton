@@ -1,5 +1,6 @@
 node_modules/
-dist/
+# Keep the production build in Git so the demonstration can run by opening
+# dist/index.html on managed computers where Node.js is not permitted.
 *.tsbuildinfo
 playwright-report/
 test-results/
