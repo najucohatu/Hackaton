@@ -63,8 +63,14 @@ export function validateBackup(input: unknown): Store {
       );
     if (["active", "purchased"].includes(p.stage) && !p.activatedAt)
       throw new Error("Backup inválido: estágio exige ativação.");
+    if (p.activatedAt && !["active", "purchased"].includes(p.stage))
+      throw new Error("Backup inválido: cliente ativado em estágio anterior.");
     if (p.stage === "purchased" && !s.orders.some((o) => o.prospectId === p.id))
       throw new Error("Backup inválido: primeira compra sem pedido.");
+    if (s.orders.some((o) => o.prospectId === p.id) && p.stage !== "purchased")
+      throw new Error(
+        "Backup inválido: compra registrada fora do estágio final.",
+      );
   }
   if (
     new Set(s.orders.map((o) => o.reference.toLowerCase().trim())).size !==
@@ -125,9 +131,10 @@ export function validateBackup(input: unknown): Store {
   }
   return s;
 }
-export function loadStore(
-  storage?: Pick<Storage, "getItem" | "setItem">,
-): { store: Store; warning: string } {
+export function loadStore(storage?: Pick<Storage, "getItem" | "setItem">): {
+  store: Store;
+  warning: string;
+} {
   const activeStorage = storage ?? availableStorage();
   if (!activeStorage)
     return {
@@ -161,10 +168,7 @@ export function loadStore(
     };
   }
 }
-export function persist(
-  s: Store,
-  storage?: Pick<Storage, "setItem">,
-) {
+export function persist(s: Store, storage?: Pick<Storage, "setItem">) {
   const activeStorage = storage ?? availableStorage();
   if (!activeStorage)
     throw new Error(

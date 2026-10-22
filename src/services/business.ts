@@ -80,6 +80,14 @@ export const addressLine = (p: Prospect) =>
   [p.address, p.number, p.neighborhood, p.city, p.state]
     .filter(Boolean)
     .join(", ");
+export const isCommercialContact = (interaction: Interaction) =>
+  !["Sistema", "Observação comercial"].includes(interaction.type);
+function hasCommercialContact(s: Store, prospectId: string) {
+  return s.interactions.some(
+    (interaction) =>
+      interaction.prospectId === prospectId && isCommercialContact(interaction),
+  );
+}
 export function duplicate(s: Store, p: Prospect) {
   return s.prospects.find(
     (x) =>
@@ -164,16 +172,29 @@ export function activationErrors(p: Prospect) {
 export function changeStage(s: Store, id: string, stage: Stage) {
   const p = getProspect(s, id);
   if (p.stage === stage) return;
+  const hasOrder = s.orders.some((order) => order.prospectId === id);
+  assert(
+    !hasOrder || stage === "purchased",
+    "Um cliente com compra registrada deve permanecer em Primeira compra realizada.",
+  );
+  assert(
+    !p.activatedAt || ["active", "purchased"].includes(stage),
+    "Um cliente ativado não pode voltar para uma etapa anterior.",
+  );
   assert(
     stage !== "active" || !!p.activatedAt,
     "Conclua a ativação comercial antes de selecionar Cliente ativo.",
   );
   assert(
-    stage !== "purchased" || s.orders.some((o) => o.prospectId === id),
+    stage !== "purchased" || hasOrder,
     "Registre uma compra antes de selecionar este estágio.",
   );
   const before = STAGES.findIndex((x) => x.id === p.stage),
     after = STAGES.findIndex((x) => x.id === stage);
+  assert(
+    after === 0 || after >= 5 || hasCommercialContact(s, id),
+    "Registre um contato comercial antes de avançar a negociação.",
+  );
   const previous = p.stage;
   p.stage = stage;
   activity(
@@ -190,6 +211,10 @@ export function activate(s: Store, id: string, confirmedBy: string) {
   const candidate = { ...p, confirmedBy: confirmedBy.trim() };
   const errors = activationErrors(candidate);
   assert(!errors.length, `Complete o cadastro: ${errors.join("; ")}.`);
+  assert(
+    hasCommercialContact(s, id),
+    "Registre um contato comercial antes de ativar o cliente.",
+  );
   p.confirmedBy = candidate.confirmedBy;
   p.activatedAt = now();
   p.stage = "active";
@@ -251,14 +276,17 @@ export function addInteraction(s: Store, input: Interaction) {
   );
   if (s.interactions.some((x) => x.id === input.id)) return;
   s.interactions.push(input);
-  p.lastContactAt =
-    !p.lastContactAt || input.createdAt > p.lastContactAt
-      ? input.createdAt
-      : p.lastContactAt;
-  p.firstContactAt ??= input.createdAt;
+  const isContact = isCommercialContact(input);
+  if (isContact) {
+    p.lastContactAt =
+      !p.lastContactAt || input.createdAt > p.lastContactAt
+        ? input.createdAt
+        : p.lastContactAt;
+    p.firstContactAt ??= input.createdAt;
+  }
   p.nextContactAt = input.nextContactAt;
   p.updatedAt = now();
-  if (p.stage === "new") {
+  if (isContact && p.stage === "new") {
     p.stage = "contacted";
     activity(s, p, "Primeiro contato realizado.");
   }
@@ -269,6 +297,10 @@ export function scheduleVisit(s: Store, input: Visit) {
   assert(
     Number.isFinite(Date.parse(input.scheduledAt)),
     "Informe data e horário válidos.",
+  );
+  assert(
+    Date.parse(input.scheduledAt) >= Date.now() - 60_000,
+    "Agende a visita para agora ou para uma data futura.",
   );
   const old = s.visits.find((v) => v.id === input.id);
   assert(
@@ -360,8 +392,8 @@ export function scheduleReturn(
   nextAction: string,
 ) {
   assert(
-    Number.isFinite(Date.parse(date)),
-    "Informe uma data válida para o retorno.",
+    Number.isFinite(Date.parse(date)) && Date.parse(date) > Date.now(),
+    "Informe uma data futura válida para o retorno.",
   );
   assert(nextAction.trim().length >= 3, "Informe a próxima ação.");
   const p = getProspect(s, id);
@@ -403,7 +435,7 @@ export function metrics(s: Store) {
     conversion: total ? (active / total) * 100 : 0,
     xp: s.rewards.reduce((n, r) => n + r.xp, 0),
     visits: s.visits.filter((v) => v.status === "completed").length,
-    contacts: s.interactions.filter((i) => i.type !== "Sistema").length,
+    contacts: s.interactions.filter(isCommercialContact).length,
     volume: firstOrders.reduce((n, o) => n + o.amount, 0),
   };
 }

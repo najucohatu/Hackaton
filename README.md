@@ -61,19 +61,19 @@ Dados corrompidos carregam uma demonstração utilizável, com aviso; uma cópia
 
 Backups são validados por schema, IDs, relações entre registros, requisitos de ativação, visitas concluídas e recompensas. JSON inválido, versões desconhecidas, referências órfãs, XP incompatível e eventos duplicados são rejeitados. Importação e restauração substituem a base apenas após confirmação. Faça uma exportação antes.
 
-Excluir um estabelecimento remove também seus registros dependentes e recompensas, recalculando indicadores e conquistas. Retroceder um estágio preserva ativação, pedidos e recompensas já conquistadas.
+Excluir um estabelecimento remove também seus registros dependentes e recompensas, recalculando indicadores e conquistas. Etapas intermediárias só avançam depois de um contato comercial real. Depois da ativação ou da primeira compra, o estágio não pode regredir e contradizer esses registros.
 
 ## Regras comerciais e XP
 
-| Ação                           | XP  | Condição                                                             |
-| ------------------------------ | --- | -------------------------------------------------------------------- |
-| Novo potencial válido          | 1   | Uma vez por estabelecimento                                          |
-| Visita concluída               | 2   | Resultado e observação válidos; uma vez por visita                   |
-| Avanço explícito de negociação | 3   | Uma vez por estágio intermediário e cliente                          |
-| Ativação comercial             | 4   | Nome, tipo, contato, endereço/cidade/UF e confirmação do responsável |
-| Primeira compra                | 5   | Cliente ativado, data válida, valor positivo e referência única      |
+| Ação                           | XP  | Condição                                                        |
+| ------------------------------ | --- | --------------------------------------------------------------- |
+| Novo potencial válido          | 1   | Uma vez por estabelecimento                                     |
+| Visita concluída               | 2   | Resultado e observação válidos; uma vez por visita              |
+| Avanço explícito de negociação | 3   | Uma vez por estágio intermediário e cliente                     |
+| Ativação comercial             | 4   | Contato comercial registrado, cadastro completo e confirmação   |
+| Primeira compra                | 5   | Cliente ativado, data válida, valor positivo e referência única |
 
-O primeiro contato muda automaticamente um potencial novo para `Primeiro contato realizado`, sem XP extra. Assim, concluir uma visita gera apenas seus 2 XP. Contatos avulsos não recebem XP próprio. Agendar, editar, abrir telas, recarregar e retroceder etapas não dão pontos. Ativação e compra têm recompensas próprias, sem o adicional de avanço de estágio.
+O primeiro contato muda automaticamente um potencial novo para `Primeiro contato realizado`, sem XP extra. Uma observação comercial permanece no histórico, mas não conta como contato nem avança a oportunidade. Assim, concluir uma visita gera apenas seus 2 XP. Contatos avulsos não recebem XP próprio. Agendar, editar, abrir telas e recarregar não dão pontos. Ativação e compra têm recompensas próprias, sem o adicional de avanço de estágio.
 
 O histórico de recompensas usa chaves estáveis `ação:cliente:entidade`. Repetir a mesma operação não repete a recompensa. Uma segunda compra pode ser registrada, mas não repete XP nem conta como outra primeira compra.
 
@@ -111,8 +111,8 @@ O repositório estava vazio: **não havia sistema anterior de gamificação para
 
 ## Validação executada
 
-- 27 testes de domínio/persistência: obrigatórios, edição, duplicação, contatos, transições, idempotência, ativação, pedidos, visitas, métricas, níveis, conquistas, backups, corrupção e insights.
-- 8 testes E2E em Chromium: jornada completa com 15 XP, recarga, edição, busca, exclusão, importação/exportação/restauração, contato, filtros, edição/cancelamento de visita e recuperação de dados corrompidos.
+- 31 testes de domínio/persistência: obrigatórios, edição, duplicação, contatos, transições, idempotência, ativação, pedidos, visitas, métricas, níveis, conquistas, backups, corrupção e insights.
+- 9 testes E2E em Chromium: jornada completa com 15 XP, recarga, edição, busca, exclusão, importação/exportação/restauração, contato, filtros, edição/cancelamento de visita, recuperação de dados corrompidos e simulação do endereço/caminhos do GitHub Pages.
 - Verificação de todas as áreas e perfil, sem transbordamento horizontal da página, em **375, 430, 768 e 1366 px**; criação de cliente pelo formulário em cada tamanho.
 - Eventos `pageerror` e erros de console monitorados durante a jornada e os testes responsivos.
 - Build TypeScript/Vite e lint executados.

@@ -150,6 +150,38 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
   expect(
     data.orders.filter((o: { prospectId: string }) => o.prospectId === p.id),
   ).toHaveLength(1);
+  const expected = {
+    total: data.prospects.length,
+    open: data.prospects.filter(
+      (item: { activatedAt: string | null }) => !item.activatedAt,
+    ).length,
+    active: data.prospects.filter(
+      (item: { activatedAt: string | null }) => item.activatedAt,
+    ).length,
+    purchases: new Set(
+      data.orders.map((item: { prospectId: string }) => item.prospectId),
+    ).size,
+    xp: data.rewards.reduce(
+      (sum: number, item: { xp: number }) => sum + item.xp,
+      0,
+    ),
+  };
+  const stat = (label: string) =>
+    page.locator(".stat-card").filter({ hasText: label }).locator("strong");
+  await page.goto(`${base}/#dashboard`);
+  await expect(stat("Potenciais clientes")).toHaveText(String(expected.total));
+  await expect(stat("Oportunidades abertas")).toHaveText(String(expected.open));
+  await expect(stat("Clientes conquistados")).toHaveText(
+    String(expected.active),
+  );
+  await expect(stat("Primeiras compras")).toHaveText(
+    String(expected.purchases),
+  );
+  await expect(stat("Taxa de conversão")).toHaveText(
+    `${((expected.active / expected.total) * 100).toFixed(1).replace(".", ",")}%`,
+  );
+  await expect(stat("XP acumulado")).toHaveText(String(expected.xp));
+  await page.goto(`${base}/#prospects/${p.id}`);
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Padaria Jornada E2E", exact: true }),

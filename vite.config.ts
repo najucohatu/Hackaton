@@ -14,7 +14,10 @@ function offlineHtml() {
         /<script type="module" crossorigin src="\.\/assets\/([^"]+)"><\/script>/,
       );
       if (scriptMatch) {
-        const source = await readFile(resolve(output, "assets", scriptMatch[1]), "utf8");
+        const source = await readFile(
+          resolve(output, "assets", scriptMatch[1]),
+          "utf8",
+        );
         html = html.replace(
           scriptMatch[0],
           () => `<script type="module">${source}</script>`,
@@ -24,7 +27,10 @@ function offlineHtml() {
         /<link rel="stylesheet" crossorigin href="\.\/assets\/([^"]+)">/,
       );
       if (styleMatch) {
-        const source = await readFile(resolve(output, "assets", styleMatch[1]), "utf8");
+        const source = await readFile(
+          resolve(output, "assets", styleMatch[1]),
+          "utf8",
+        );
         html = html.replace(styleMatch[0], () => `<style>${source}</style>`);
       }
       await writeFile(page, html);

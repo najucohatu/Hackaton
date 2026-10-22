@@ -114,6 +114,17 @@ describe("cadastro, métricas e histórico", () => {
     expect(metrics(s).contacts).toBe(1);
     expect(metrics(s).xp).toBe(1);
   });
+  it("mantém observação comercial fora da contagem de contatos e do avanço", () => {
+    const { s, p } = setup();
+    addInteraction(s, {
+      ...contact(p.id),
+      id: "note-1",
+      type: "Observação comercial",
+    });
+    expect(p.stage).toBe("new");
+    expect(p.firstContactAt).toBeNull();
+    expect(metrics(s).contacts).toBe(0);
+  });
   it("não deixa um contato antigo sobrescrever a data do mais recente", () => {
     const { s, p } = setup();
     addInteraction(s, contact(p.id));
@@ -131,6 +142,18 @@ describe("cadastro, métricas e histórico", () => {
     scheduleReturn(s, p.id, d, "Apresentar proposta");
     expect(p.nextContactAt).toBe(d);
     expect(s.interactions.at(-1)?.nextAction).toBe("Apresentar proposta");
+  });
+  it("rejeita retorno e visita agendados no passado", () => {
+    const { s, p } = setup();
+    expect(() =>
+      scheduleReturn(s, p.id, "2020-01-01T10:00:00.000Z", "Retornar"),
+    ).toThrow("futura");
+    expect(() =>
+      scheduleVisit(s, {
+        ...visit(p.id),
+        scheduledAt: "2020-01-01T10:00:00.000Z",
+      }),
+    ).toThrow("futura");
   });
   it("exclui relações e recalcula métricas", () => {
     const { s, p } = setup();
@@ -150,6 +173,7 @@ describe("negociação, ativação e compras", () => {
   });
   it("retrocessos não apagam conquistas e não repetem XP", () => {
     const { s, p } = setup();
+    addInteraction(s, contact(p.id));
     changeStage(s, p.id, "negotiation");
     changeStage(s, p.id, "contacted");
     changeStage(s, p.id, "negotiation");
@@ -159,8 +183,19 @@ describe("negociação, ativação e compras", () => {
       s.interactions.filter((i) => i.description.startsWith("Estágio")),
     ).toHaveLength(3);
   });
+  it("bloqueia avanço sem contato e regressão depois de ativação ou compra", () => {
+    const { s, p } = setup();
+    expect(() => changeStage(s, p.id, "negotiation")).toThrow("contato");
+    expect(() => activate(s, p.id, "Rafael")).toThrow("contato");
+    addInteraction(s, contact(p.id));
+    activate(s, p.id, "Rafael");
+    expect(() => changeStage(s, p.id, "negotiation")).toThrow("ativado");
+    addOrder(s, order(p.id));
+    expect(() => changeStage(s, p.id, "active")).toThrow("compra registrada");
+  });
   it("exige cadastro comercial completo e confirmação", () => {
     const { s, p } = setup();
+    addInteraction(s, contact(p.id));
     p.address = "";
     expect(() => activate(s, p.id, "Rafael")).toThrow("Endereço");
     expect(p.activatedAt).toBeNull();
@@ -170,6 +205,7 @@ describe("negociação, ativação e compras", () => {
   });
   it("ativação idempotente dá 4 XP e preserva os requisitos ao editar", () => {
     const { s, p } = setup();
+    addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
     activate(s, p.id, "Rafael");
     expect(metrics(s)).toMatchObject({ active: 1, conversion: 100, xp: 5 });
@@ -177,6 +213,7 @@ describe("negociação, ativação e compras", () => {
   });
   it("valida valor e data do pedido e rejeita referência repetida", () => {
     const { s, p } = setup();
+    addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
     expect(() => addOrder(s, { ...order(p.id), amount: 0 })).toThrow("valor");
     expect(() =>
@@ -189,6 +226,7 @@ describe("negociação, ativação e compras", () => {
   });
   it("primeira compra gera 5 XP uma vez; compras posteriores não inflam conversão ou volume de primeiras compras", () => {
     const { s, p } = setup();
+    addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
     const o = order(p.id);
     addOrder(s, o);
@@ -312,6 +350,7 @@ describe("armazenamento e consistência", () => {
   });
   it("exportação/importação roundtrip preserva a base e o XP", () => {
     const { s, p } = setup();
+    addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
     addOrder(s, order(p.id));
     const parsed = validateBackup(JSON.parse(JSON.stringify(s)));
@@ -336,6 +375,17 @@ describe("armazenamento e consistência", () => {
     p.stage = "new";
     s.rewards[0].xp = 5;
     expect(() => validateBackup(s)).toThrow("recompensa");
+  });
+  it("rejeita backup com ativação ou compra em estágio incompatível", () => {
+    const { s, p } = setup();
+    addInteraction(s, contact(p.id));
+    activate(s, p.id, "Rafael");
+    p.stage = "negotiation";
+    expect(() => validateBackup(s)).toThrow("estágio anterior");
+    p.stage = "active";
+    addOrder(s, order(p.id));
+    p.stage = "active";
+    expect(() => validateBackup(s)).toThrow("fora do estágio final");
   });
   it("salva, recarrega sem resemear e recupera dados corrompidos", () => {
     const values = new Map<string, string>();
