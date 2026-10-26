@@ -28,6 +28,9 @@ test("GitHub Pages redireciona para o build e mantém rota interna ao recarregar
   });
 
   await page.goto(liveUrl);
+  await page.getByLabel("E-mail").fill("demo@rota.plus");
+  await page.getByLabel("Senha").fill("demonstracao");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page).toHaveURL(`${liveUrl}dist/`);
   await expect(
     page.getByRole("heading", { name: "Vamos conquistar novos caminhos." }),

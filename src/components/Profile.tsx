@@ -29,7 +29,7 @@ import {
   digits,
   validPhone,
 } from "../services/business";
-import { money, dateTime } from "../services/format";
+import { kilos, dateTime } from "../services/format";
 import { Empty, SectionTitle, StageBadge, PriorityBadge } from "./ui";
 export function Profile({
   p,
@@ -138,9 +138,9 @@ export function Profile({
                 ["Necessidade identificada", p.commercialNeed],
                 ["Frequência potencial", p.purchaseFrequency],
                 [
-                  "Volume potencial",
+                  "Volume potencial (kg)",
                   p.estimatedPurchaseValue
-                    ? money(p.estimatedPurchaseValue)
+                    ? kilos(p.estimatedPurchaseValue)
                     : "",
                 ],
                 ["Origem", p.source],
@@ -382,7 +382,7 @@ export function Profile({
                 {orders.map((o, i) => (
                   <div className="order-item" key={o.id}>
                     <div className="row between">
-                      <strong>{money(o.amount)}</strong>
+                      <strong>{kilos(o.amount)}</strong>
                       <span className="badge">
                         {i === 0 ? "1ª compra" : "Compra"}
                       </span>

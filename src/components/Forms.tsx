@@ -204,7 +204,7 @@ export function ProspectForm({
             {text("commercialNeed", "Necessidade identificada")}
             {text("purchaseFrequency", "Frequência potencial de compra")}
             <Input
-              label="Volume potencial (R$)"
+              label="Volume potencial (kg)"
               type="number"
               min="0"
               step="0.01"
@@ -491,7 +491,7 @@ export function ActionForm({
               required
             />
             <Input
-              label="Valor total (R$) *"
+              label="Quantidade total (kg) *"
               name="amount"
               type="number"
               min="0.01"

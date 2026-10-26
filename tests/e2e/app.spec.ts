@@ -2,6 +2,11 @@ import { readFile } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 const base = "http://127.0.0.1:5173";
+const login = async (page: Page) => {
+  await page.getByLabel("E-mail").fill("demo@rota.plus");
+  await page.getByLabel("Senha").fill("demonstracao");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+};
 const getData = (p: Page) =>
   p.evaluate(() => JSON.parse(localStorage.getItem("rota-plus:v1")!));
 const future = () => {
@@ -20,6 +25,7 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
     if (msg.type() === "error") errors.push(msg.text());
   });
   await page.goto(base);
+  await login(page);
   await expect(
     page.getByRole("heading", { name: "Vamos conquistar novos caminhos." }),
   ).toBeVisible();
@@ -50,7 +56,7 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
   await expect(
     page.getByRole("heading", { name: "Padaria Jornada E2E", exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("+1 XP");
+  await expect(page.getByRole("status")).toContainText("+10 XP");
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page
     .getByRole("button", { name: "Copiar sugestões", exact: true })
@@ -69,7 +75,7 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
   await page
     .getByRole("button", { name: "Registrar primeira compra", exact: true })
     .click();
-  await page.getByLabel("Valor total (R$) *").fill("700");
+  await page.getByLabel("Quantidade total (kg) *").fill("700");
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Salvar registro" })
@@ -100,7 +106,7 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
     .getByRole("dialog")
     .getByRole("button", { name: "Concluir visita", exact: true })
     .click();
-  await expect(page.getByRole("status")).toContainText("+2 XP");
+  await expect(page.getByRole("status")).toContainText("+25 XP");
   await page
     .getByRole("button", { name: "Atualizar negociação", exact: true })
     .click();
@@ -109,7 +115,7 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
     .getByRole("dialog")
     .getByRole("button", { name: "Salvar registro" })
     .click();
-  await expect(page.getByRole("status")).toContainText("+3 XP");
+  await expect(page.getByRole("status")).toContainText("+50 XP");
   await page
     .getByRole("button", { name: "Agendar retorno", exact: true })
     .first()
@@ -127,22 +133,22 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
   await page
     .getByRole("button", { name: "Ativar cliente", exact: true })
     .click();
-  await expect(page.getByRole("status")).toContainText("+4 XP");
+  await expect(page.getByRole("status")).toContainText("+100 XP");
   await page
     .getByRole("button", { name: "Registrar primeira compra", exact: true })
     .click();
-  await page.getByLabel("Valor total (R$) *").fill("700");
+  await page.getByLabel("Quantidade total (kg) *").fill("700");
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Salvar registro" })
     .click();
-  await expect(page.getByRole("status")).toContainText("+5 XP");
-  await expect(page.getByText("R$ 700,00", { exact: true })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("+200 XP");
+  await expect(page.getByText("700 kg", { exact: true })).toBeVisible();
   let data = await getData(page);
   expect(
     data.rewards.reduce((n: number, r: { xp: number }) => n + r.xp, 0) -
       initialXP,
-  ).toBe(15);
+  ).toBe(385);
   const p = data.prospects.find(
     (p: { businessName: string }) => p.businessName === "Padaria Jornada E2E",
   );
@@ -190,7 +196,7 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
   expect(data.prospects).toHaveLength(16);
   expect(
     data.rewards.reduce((n: number, r: { xp: number }) => n + r.xp, 0),
-  ).toBe(initialXP + 15);
+  ).toBe(initialXP + 385);
   await page.goto(`${base}/#prospects`);
   await page
     .getByRole("textbox", { name: "Buscar estabelecimentos" })
@@ -240,6 +246,8 @@ test("jornada real: cadastro → visita → negociação → ativação → comp
 test("agenda permite editar e cancelar; contato e filtros funcionam", async ({
   page,
 }) => {
+  await page.goto(base);
+  await login(page);
   await page.goto(`${base}/#route`);
   await page
     .getByRole("button", { name: "Agendar visita", exact: true })
@@ -306,6 +314,8 @@ for (const width of [375, 430, 768, 1366])
       if (msg.type() === "error") errors.push(msg.text());
     });
     await page.setViewportSize({ width, height: 900 });
+    await page.goto(base);
+    await login(page);
     for (const route of [
       "dashboard",
       "prospects",
@@ -349,6 +359,7 @@ for (const width of [375, 430, 768, 1366])
   });
 test("recupera armazenamento corrompido sem travar", async ({ page }) => {
   await page.goto(base);
+  await login(page);
   await page.evaluate(() => localStorage.setItem("rota-plus:v1", "{bad json"));
   await page.reload();
   await expect(
@@ -362,6 +373,7 @@ test("bloqueia duplicado, ativação incompleta e compra sem pedido no formulár
   page,
 }) => {
   await page.goto(`${base}/#prospects`);
+  await login(page);
   await page
     .getByRole("button", { name: "Novo potencial", exact: true })
     .click();

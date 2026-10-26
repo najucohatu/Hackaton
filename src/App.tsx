@@ -39,6 +39,7 @@ import { Profile } from "./components/Profile";
 import { Performance, Settings } from "./components/Performance";
 import { Modal, Empty } from "./components/ui";
 import { ProspectForm, ActionForm, formTitles } from "./components/Forms";
+import { Login } from "./components/Login";
 import type { FormRequest, FormPayload } from "./components/Forms";
 const navigation = [
   { id: "dashboard", label: "Visão geral", icon: LayoutDashboard },
@@ -55,6 +56,9 @@ interface Confirmation {
   action: () => void;
 }
 export default function App() {
+  const [authenticated, setAuthenticated] = useState(
+    () => sessionStorage.getItem("rota-plus:demo-session") === "active",
+  );
   const [loaded] = useState(() => loadStore());
   const [store, setStore] = useState(loaded.store);
   const current = useRef(store);
@@ -222,6 +226,15 @@ export default function App() {
       : null;
   const m = metrics(store),
     level = levelFor(m.xp);
+  if (!authenticated)
+    return (
+      <Login
+        onEnter={() => {
+          sessionStorage.setItem("rota-plus:demo-session", "active");
+          setAuthenticated(true);
+        }}
+      />
+    );
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileMenu ? "open" : ""}`}>

@@ -93,7 +93,7 @@ describe("cadastro, métricas e histórico", () => {
     const { s, p } = setup();
     saveProspect(s, { ...p, businessName: "Padaria Editada" });
     expect(s.prospects[0].businessName).toBe("Padaria Editada");
-    expect(metrics(s).xp).toBe(1);
+    expect(metrics(s).xp).toBe(10);
     expect(s.interactions).toHaveLength(2);
   });
   it("detecta duplicações por nome e localização normalizados e por telefone", () => {
@@ -112,7 +112,7 @@ describe("cadastro, métricas e histórico", () => {
     expect(s.prospects[0].lastContactAt).toBe(i.createdAt);
     expect(s.prospects[0].stage).toBe("contacted");
     expect(metrics(s).contacts).toBe(1);
-    expect(metrics(s).xp).toBe(1);
+    expect(metrics(s).xp).toBe(10);
   });
   it("mantém observação comercial fora da contagem de contatos e do avanço", () => {
     const { s, p } = setup();
@@ -178,7 +178,7 @@ describe("negociação, ativação e compras", () => {
     changeStage(s, p.id, "contacted");
     changeStage(s, p.id, "negotiation");
     changeStage(s, p.id, "negotiation");
-    expect(metrics(s).xp).toBe(4);
+    expect(metrics(s).xp).toBe(60);
     expect(
       s.interactions.filter((i) => i.description.startsWith("Estágio")),
     ).toHaveLength(3);
@@ -199,23 +199,25 @@ describe("negociação, ativação e compras", () => {
     p.address = "";
     expect(() => activate(s, p.id, "Rafael")).toThrow("Endereço");
     expect(p.activatedAt).toBeNull();
-    expect(metrics(s).xp).toBe(1);
+    expect(metrics(s).xp).toBe(10);
     p.address = "Rua";
     expect(() => activate(s, p.id, "")).toThrow("Confirmação");
   });
-  it("ativação idempotente dá 4 XP e preserva os requisitos ao editar", () => {
+  it("ativação idempotente dá 100 XP e preserva os requisitos ao editar", () => {
     const { s, p } = setup();
     addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
     activate(s, p.id, "Rafael");
-    expect(metrics(s)).toMatchObject({ active: 1, conversion: 100, xp: 5 });
+    expect(metrics(s)).toMatchObject({ active: 1, conversion: 100, xp: 110 });
     expect(() => saveProspect(s, { ...p, email: "" })).toThrow("mínimos");
   });
-  it("valida valor e data do pedido e rejeita referência repetida", () => {
+  it("valida quantidade e data do pedido e rejeita referência repetida", () => {
     const { s, p } = setup();
     addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
-    expect(() => addOrder(s, { ...order(p.id), amount: 0 })).toThrow("valor");
+    expect(() => addOrder(s, { ...order(p.id), amount: 0 })).toThrow(
+      "quantidade",
+    );
     expect(() =>
       addOrder(s, { ...order(p.id), createdAt: "2099-01-01T00:00:00Z" }),
     ).toThrow("data");
@@ -224,7 +226,7 @@ describe("negociação, ativação e compras", () => {
       "identificador",
     );
   });
-  it("primeira compra gera 5 XP uma vez; compras posteriores não inflam conversão ou volume de primeiras compras", () => {
+  it("primeira compra gera 200 XP uma vez; compras posteriores não inflam conversão ou volume de primeiras compras", () => {
     const { s, p } = setup();
     addInteraction(s, contact(p.id));
     activate(s, p.id, "Rafael");
@@ -239,12 +241,12 @@ describe("negociação, ativação e compras", () => {
       purchases: 1,
       volume: 250,
       conversion: 100,
-      xp: 10,
+      xp: 310,
     });
     expect(s.prospects[0].stage).toBe("purchased");
     expect(validateBackup(s)).toEqual(s);
   });
-  it("executa a jornada do hackathon com histórico e 15 XP", () => {
+  it("executa a jornada do hackathon com histórico e 385 XP", () => {
     const { s, p } = setup();
     scheduleVisit(s, visit(p.id));
     completeVisit(s, "visit-1", {
@@ -258,13 +260,13 @@ describe("negociação, ativação e compras", () => {
     activate(s, p.id, "Rafael");
     addOrder(s, order(p.id));
     expect(metrics(s)).toMatchObject({
-      xp: 15,
+      xp: 385,
       visits: 1,
       active: 1,
       purchases: 1,
       contacts: 1,
     });
-    expect(s.rewards.map((r) => r.xp)).toEqual([1, 2, 3, 4, 5]);
+    expect(s.rewards.map((r) => r.xp)).toEqual([10, 25, 50, 100, 200]);
     expect(achievements(s).filter((a) => a.unlocked)).toHaveLength(4);
   });
 });
@@ -275,7 +277,7 @@ describe("visitas", () => {
     scheduleVisit(s, { ...visit(p.id), objective: "Objetivo atualizado" });
     expect(s.visits).toHaveLength(1);
     expect(s.visits[0].objective).toBe("Objetivo atualizado");
-    expect(metrics(s).xp).toBe(1);
+    expect(metrics(s).xp).toBe(10);
   });
   it("conclui uma vez, com um único histórico e recompensa", () => {
     const { s, p } = setup();
@@ -332,7 +334,7 @@ describe("visitas", () => {
       }),
     ).toThrow("cancelada");
     expect(() => scheduleVisit(s, visit(p.id))).toThrow("cancelada");
-    expect(metrics(s).xp).toBe(1);
+    expect(metrics(s).xp).toBe(10);
   });
 });
 describe("armazenamento e consistência", () => {
@@ -415,9 +417,9 @@ describe("armazenamento e consistência", () => {
   });
   it("níveis usam limiares configurados e conquistas derivam de ações reais", () => {
     expect(levelFor(0).index).toBe(0);
-    expect(levelFor(30).current.name).toBe("Prospectador");
-    expect(levelFor(79).index).toBe(1);
-    expect(levelFor(300).progress).toBe(100);
+    expect(levelFor(100).current.name).toBe("Prospectador");
+    expect(levelFor(299).index).toBe(1);
+    expect(levelFor(1500).progress).toBe(100);
     expect(achievements(empty()).every((a) => !a.unlocked)).toBe(true);
   });
   it("recomendações usam tipo, necessidade, estágio, objeção e histórico", () => {

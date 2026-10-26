@@ -15,7 +15,7 @@ import {
 import type { Store } from "../models";
 import { STAGES } from "../models";
 import { metrics, rank } from "../services/business";
-import { money, dateTime, isToday, overdue } from "../services/format";
+import { kilos, dateTime, isToday, overdue } from "../services/format";
 import { Empty, SectionTitle, PriorityBadge } from "./ui";
 export function StatCards({
   store,
@@ -87,9 +87,9 @@ export function StatCards({
       },
       {
         label: "Volume de primeiras compras",
-        value: money(m.volume),
+        value: kilos(m.volume),
         icon: ShoppingBag,
-        caption: "Valor demonstrativo, sem faturamento",
+        caption: "Quantidade demonstrativa, sem faturamento",
         color: "orange",
       },
     );

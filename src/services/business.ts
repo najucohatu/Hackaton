@@ -122,7 +122,7 @@ export function validateProspect(p: Prospect) {
     !Number.isFinite(p.estimatedPurchaseValue) ||
     p.estimatedPurchaseValue < 0
   )
-    throw new Error("O valor potencial deve ser maior ou igual a zero.");
+    throw new Error("A quantidade potencial deve ser maior ou igual a zero.");
 }
 export function saveProspect(s: Store, p: Prospect) {
   validateProspect(p);
@@ -236,7 +236,7 @@ export function addOrder(
   assert(p.activatedAt, "Ative o cliente antes de registrar uma compra.");
   assert(
     Number.isFinite(input.amount) && input.amount > 0,
-    "Informe um valor de compra maior que zero.",
+    "Informe uma quantidade de compra maior que zero.",
   );
   assert(input.reference.trim(), "Informe o identificador fictício do pedido.");
   assert(

@@ -1,5 +1,5 @@
-export const money = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const kilos = (n: number) =>
+  `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg`;
 export const dateTime = (d: string | null) =>
   d
     ? new Date(d).toLocaleString("pt-BR", {

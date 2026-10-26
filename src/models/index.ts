@@ -135,22 +135,22 @@ export const orderSchema = z.object({
 export type Order = z.infer<typeof orderSchema>;
 export const ACTIONS = {
   prospect: {
-    xp: 1,
+    xp: 10,
     label: "Novo potencial cadastrado",
     skill: "Organização e identificação de oportunidades",
   },
   visit: {
-    xp: 2,
+    xp: 25,
     label: "Visita concluída",
     skill: "Execução e acompanhamento comercial",
   },
-  stage: { xp: 3, label: "Avanço de negociação", skill: "Tomada de decisão" },
+  stage: { xp: 50, label: "Avanço de negociação", skill: "Tomada de decisão" },
   activation: {
-    xp: 4,
+    xp: 100,
     label: "Cliente ativado",
     skill: "Organização e conversão comercial",
   },
-  order: { xp: 5, label: "Primeira compra", skill: "Tino comercial" },
+  order: { xp: 200, label: "Primeira compra", skill: "Tino comercial" },
 } as const;
 export type RewardAction = keyof typeof ACTIONS;
 export const rewardSchema = z.object({
@@ -159,7 +159,7 @@ export const rewardSchema = z.object({
   action: z.enum(["prospect", "visit", "stage", "activation", "order"]),
   prospectId: id,
   relatedEntityId: id,
-  xp: z.number().int().min(0).max(5),
+  xp: z.number().int().min(0).max(200),
   createdAt: date,
   description: text,
 });
@@ -176,10 +176,10 @@ export const storeSchema = z.object({
 export type Store = z.infer<typeof storeSchema>;
 export const LEVELS = [
   { name: "Explorador Comercial", xp: 0 },
-  { name: "Prospectador", xp: 30 },
-  { name: "Negociador", xp: 80 },
-  { name: "Conquistador", xp: 160 },
-  { name: "Mestre das Rotas", xp: 300 },
+  { name: "Prospectador", xp: 100 },
+  { name: "Negociador", xp: 300 },
+  { name: "Conquistador", xp: 700 },
+  { name: "Mestre das Rotas", xp: 1500 },
 ];
 export const stageLabel = (stage: Stage) =>
   STAGES.find((s) => s.id === stage)!.label;

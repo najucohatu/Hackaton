@@ -15,7 +15,7 @@ import {
 import type { Store, Visit } from "../models";
 import { STAGES, TYPES } from "../models";
 import { normalized, rank, addressLine } from "../services/business";
-import { dayKey, dateTime, isToday, overdue, money } from "../services/format";
+import { dayKey, dateTime, isToday, overdue, kilos } from "../services/format";
 import { Empty, ProspectCard, PriorityBadge, StageBadge } from "./ui";
 import type { FormRequest } from "./Forms";
 export function Prospects({
@@ -195,7 +195,7 @@ export function Prospects({
                         <ProspectCard p={p} onOpen={onOpen} />
                         {p.estimatedPurchaseValue > 0 && (
                           <span className="kanban-value">
-                            Potencial {money(p.estimatedPurchaseValue)}
+                            Potencial {kilos(p.estimatedPurchaseValue)}
                           </span>
                         )}
                       </div>

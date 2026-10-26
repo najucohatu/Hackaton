@@ -65,19 +65,19 @@ Excluir um estabelecimento remove também seus registros dependentes e recompens
 
 ## Regras comerciais e XP
 
-| Ação                           | XP  | Condição                                                        |
-| ------------------------------ | --- | --------------------------------------------------------------- |
-| Novo potencial válido          | 1   | Uma vez por estabelecimento                                     |
-| Visita concluída               | 2   | Resultado e observação válidos; uma vez por visita              |
-| Avanço explícito de negociação | 3   | Uma vez por estágio intermediário e cliente                     |
-| Ativação comercial             | 4   | Contato comercial registrado, cadastro completo e confirmação   |
-| Primeira compra                | 5   | Cliente ativado, data válida, valor positivo e referência única |
+| Ação                           | XP  | Condição                                                             |
+| ------------------------------ | --- | -------------------------------------------------------------------- |
+| Novo potencial válido          | 10  | Uma vez por estabelecimento                                          |
+| Visita concluída               | 25  | Resultado e observação válidos; uma vez por visita                   |
+| Avanço explícito de negociação | 50  | Uma vez por estágio intermediário e cliente                          |
+| Ativação comercial             | 100 | Contato comercial registrado, cadastro completo e confirmação        |
+| Primeira compra                | 200 | Cliente ativado, data válida, quantidade positiva e referência única |
 
-O primeiro contato muda automaticamente um potencial novo para `Primeiro contato realizado`, sem XP extra. Uma observação comercial permanece no histórico, mas não conta como contato nem avança a oportunidade. Assim, concluir uma visita gera apenas seus 2 XP. Contatos avulsos não recebem XP próprio. Agendar, editar, abrir telas e recarregar não dão pontos. Ativação e compra têm recompensas próprias, sem o adicional de avanço de estágio.
+O primeiro contato muda automaticamente um potencial novo para `Primeiro contato realizado`, sem XP extra. Uma observação comercial permanece no histórico, mas não conta como contato nem avança a oportunidade. Assim, concluir uma visita gera apenas seus 25 XP. Contatos avulsos não recebem XP próprio. Agendar, editar, abrir telas e recarregar não dão pontos. Ativação e compra têm recompensas próprias, sem o adicional de avanço de estágio.
 
 O histórico de recompensas usa chaves estáveis `ação:cliente:entidade`. Repetir a mesma operação não repete a recompensa. Uma segunda compra pode ser registrada, mas não repete XP nem conta como outra primeira compra.
 
-Níveis configuráveis em `src/models/index.ts`: Explorador Comercial (0), Prospectador (30), Negociador (80), Conquistador (160) e Mestre das Rotas (300). As cinco conquistas são calculadas a partir das ações salvas, com data da recompensa correspondente.
+Níveis configuráveis em `src/models/index.ts`: Explorador Comercial (0), Prospectador (100), Negociador (300), Conquistador (700) e Mestre das Rotas (1500). As cinco conquistas são calculadas a partir das ações salvas, com data da recompensa correspondente.
 
 **Conversão:** clientes que já foram ativados / total de estabelecimentos × 100. Clientes com compra continuam sendo contados uma única vez entre os ativados. Volume de primeiras compras soma o primeiro pedido por estabelecimento, ordenado por data.
 
@@ -102,17 +102,17 @@ O repositório estava vazio: **não havia sistema anterior de gamificação para
 ## Roteiro de apresentação (3 a 5 minutos)
 
 1. **30 s — contexto:** mostre o dashboard e explique a dificuldade de lembrar contatos e priorizar a rota.
-2. **45 s — novo potencial:** cadastre “Padaria Nova Jornada”, selecione Padaria e informe e-mail fictício, endereço, cidade e UF. Receba **+1 XP** e consulte os Insights.
-3. **60 s — visita:** agende uma visita no perfil, abra “Registrar resultado” e conclua com resultado Produtiva e uma descrição. Receba **+2 XP** e confira o histórico.
-4. **30 s — negociação:** use “Atualizar negociação” para avançar a Em negociação. Receba **+3 XP**. Agende um retorno com próxima ação.
-5. **30 s — conversão:** clique em “Concluir cadastro”, confira os requisitos e confirme a verificação comercial. Ative o cliente e receba **+4 XP**.
-6. **45 s — primeira compra:** registre um pedido fictício de R$ 700,00 com data atual. Receba **+5 XP**. Mostre o dashboard e o desempenho atualizados: **15 XP** no fluxo e um novo cliente com primeira compra.
+2. **45 s — novo potencial:** cadastre “Padaria Nova Jornada”, selecione Padaria e informe e-mail fictício, endereço, cidade e UF. Receba **+10 XP** e consulte os Insights.
+3. **60 s — visita:** agende uma visita no perfil, abra “Registrar resultado” e conclua com resultado Produtiva e uma descrição. Receba **+25 XP** e confira o histórico.
+4. **30 s — negociação:** use “Atualizar negociação” para avançar a Em negociação. Receba **+50 XP**. Agende um retorno com próxima ação.
+5. **30 s — conversão:** clique em “Concluir cadastro”, confira os requisitos e confirme a verificação comercial. Ative o cliente e receba **+100 XP**.
+6. **45 s — primeira compra:** registre um pedido fictício de 700 kg com data atual. Receba **+200 XP**. Mostre o dashboard e o desempenho atualizados: **385 XP** no fluxo e um novo cliente com primeira compra.
 7. **15 s — fechamento:** recarregue para mostrar persistência e explique que backups podem ser exportados em Configurações.
 
 ## Validação executada
 
 - 31 testes de domínio/persistência: obrigatórios, edição, duplicação, contatos, transições, idempotência, ativação, pedidos, visitas, métricas, níveis, conquistas, backups, corrupção e insights.
-- 9 testes E2E em Chromium: jornada completa com 15 XP, recarga, edição, busca, exclusão, importação/exportação/restauração, contato, filtros, edição/cancelamento de visita, recuperação de dados corrompidos e simulação do endereço/caminhos do GitHub Pages.
+- 9 testes E2E em Chromium: login demonstrativo, jornada completa com 385 XP, recarga, edição, busca, exclusão, importação/exportação/restauração, contato, filtros, edição/cancelamento de visita, recuperação de dados corrompidos e simulação do endereço/caminhos do GitHub Pages.
 - Verificação de todas as áreas e perfil, sem transbordamento horizontal da página, em **375, 430, 768 e 1366 px**; criação de cliente pelo formulário em cada tamanho.
 - Eventos `pageerror` e erros de console monitorados durante a jornada e os testes responsivos.
 - Build TypeScript/Vite e lint executados.
